@@ -1,0 +1,30 @@
+[project]
+name = "health-rag-api"
+version = "0.1.0"
+description = "Health RAG API Une application API moderne utilisant FastAPI, LangChain et OpenFDA pour montrer une architecture RAG (Retrieval-Augmented Generation)."
+authors = [
+    {name = "RANOELISON Dimbisoa Patrick",email = "ranoelisondimbisoapatrick@gmail.com"}
+]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+langchain = "^0.1.0"
+langchain-openai = "^0.0.5"
+langchain-community = "^0.0.20"
+chromadb = "^0.4.22"
+requests = "^2.31.0"
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+black = "^23.12.0"
+ruff = "^0.1.9"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
