@@ -82,7 +82,6 @@ orjson==3.11.7
 ormsgpack==1.12.2
 overrides==7.7.0
 packaging==26.0
-passlib==1.7.4
 pathspec==1.0.4
 platformdirs==4.5.1
 pluggy==1.6.0

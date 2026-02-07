@@ -1,46 +1,47 @@
 from datetime import datetime, timedelta
 from typing import Optional
+import bcrypt  # Import direct de Bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, TokenData
-# Import de la configuration pour lire les variables .env
 from app.config import get_settings
 
 settings = get_settings()
 
-# Configuration de la sécurité (Désormais dynamique)
-# On utilise settings.secret_key au lieu de la chaîne de caractères en dur
+# Configuration de la sécurité
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
-# Contexte de hachage (bcrypt)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Schéma OAuth2 : FastAPI attendra un header "Authorization: Bearer <token>"
+# Schéma OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Vérifie si un mot de passe en clair correspond au hash stocké.
+    Vérifie un mot de passe avec bcrypt direct.
+    On découpe [:72] car bcrypt a une stricte limite de 72 octets.
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # Attention : Bcrypt attend des bytes, pas des strings
+    password_bytes = plain_password[:72].encode('utf-8')
+    hash_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hash_bytes)
 
-def get_password_hash(password):
+def get_password_hash(password: str) -> str:
     """
-    Hash un mot de passe avant de le stocker.
+    Hash un mot de passe avec bcrypt direct.
     """
-    return pwd_context.hash(password)
+    # Génération du sel (salt) et hashage
+    password_bytes = password[:72].encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed_bytes = bcrypt.hashpw(password_bytes, salt)
+    # On retourne un string pour le stocker en base
+    return hashed_bytes.decode('utf-8')
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """
-    Génère un JWT (JSON Web Token).
-    Utilise les algorithmes et clés définis dans le .env.
-    """
+    """Génère le JWT (inchangé)"""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -52,15 +53,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 def get_user(db: Session, username: str):
-    """
-    Récupère un utilisateur depuis la base de données.
-    """
+    """Récupère l'utilisateur (inchangé)"""
     return db.query(User).filter(User.username == username).first()
 
 def authenticate_user(db: Session, username: str, password: str):
-    """
-    Authentifie l'utilisateur : Vérifie existence et mot de passe.
-    """
+    """Authentifie l'utilisateur (inchangé, utilise les nouvelles fonctions bcrypt ci-dessus)"""
     user = get_user(db, username)
     if not user:
         return False
@@ -69,10 +66,7 @@ def authenticate_user(db: Session, username: str, password: str):
     return user
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    """
-    Dépendance FastAPI : Décrypte le token et renvoie l'utilisateur connecté.
-    Utilisé dans les endpoints protégés.
-    """
+    """Vérifie le token JWT (inchangé)"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

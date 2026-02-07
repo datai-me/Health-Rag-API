@@ -101,7 +101,7 @@ class UserCreate(BaseModel):
     password: str = Field(
         ..., 
         min_length=8, 
-        max_length=100,
+        max_length=72,  # <--- AJOUT IMPORTANT : Bcrypt limite à 72 caractères
         description="Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.", 
         example="SecureP@ss1"
     )
