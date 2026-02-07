@@ -4,6 +4,9 @@ from datetime import datetime
 # Modèle pour la Base de Données (SQLAlchemy) - Importé dans database.py
 from sqlalchemy import Column, Integer, String
 from app.database import Base
+# Pour les validations
+from pydantic import BaseModel, Field, field_validator
+import re
 
 
 # --- MODÈLES RAG ---
@@ -72,15 +75,10 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
 
 # Modèles pour l'API (Pydantic)
-class UserCreate(BaseModel):
-    """Données nécessaires pour créer un utilisateur."""
-    username: str = Field(..., example="johndoe")
-    password: str = Field(..., example="monmotdepasse123")
-
 class UserLogin(BaseModel):
     """Données nécessaires pour se connecter."""
-    username: str = Field(..., example="johndoe")
-    password: str = Field(..., example="monmotdepasse123")
+    username: str = Field(..., min_length=1, example="johndoe")
+    password: str = Field(..., min_length=1, example="SecureP@ss1")
 
 class Token(BaseModel):
     """Réponse lors d'une connexion réussie."""
@@ -90,3 +88,41 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Structure interne du payload JWT."""
     username: Optional[str] = None
+
+class UserCreate(BaseModel):
+    """Données nécessaires pour créer un utilisateur."""
+    username: str = Field(
+        ..., 
+        min_length=3, 
+        max_length=20, 
+        description="Le nom d'utilisateur (entre 3 et 20 caractères)", 
+        example="johndoe"
+    )
+    password: str = Field(
+        ..., 
+        min_length=8, 
+        max_length=100,
+        description="Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.", 
+        example="SecureP@ss1"
+    )
+
+    @field_validator('password')
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        """
+        Valide que le mot de passe respecte les règles de sécurité :
+        - Au moins une majuscule
+        - Au moins une minuscule
+        - Au moins un chiffre
+        - Au moins un caractère spécial
+        """
+        if not re.search(r"[A-Z]", v):
+            raise ValueError('Le mot de passe doit contenir au moins une majuscule.')
+        if not re.search(r"[a-z]", v):
+            raise ValueError('Le mot de passe doit contenir au moins une minuscule.')
+        if not re.search(r"[0-9]", v):
+            raise ValueError('Le mot de passe doit contenir au moins un chiffre.')
+        if not re.search(r"[ !@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", v):
+            raise ValueError('Le mot de passe doit contenir au moins un caractère spécial.')
+        return v
+

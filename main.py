@@ -25,7 +25,6 @@ async def lifespan(app: FastAPI):
     # Shutdown : Fermeture des connexions, logs de fin, etc.
     print("Arrêt de l'application.")
 
-
 # Initialisation de l'application avec métadonnées pour OpenAPI
 app = FastAPI(
     title="Health RAG API",
