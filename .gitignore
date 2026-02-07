@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Base de données locale
+chroma_db/
+
+# --- POETRY SPECIFIC ---
+# Ne pas commit le fichier de verrouillage des versions (lock file) dans certains workflows,
+# mais pour un projet de démo, on le commit souvent. Ici, on ignore juste les builds de build-system.
+
+*.tar.gz

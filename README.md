@@ -1,7 +1,7 @@
-🩺 Health RAG API
+🩺 Health RAG API (Poetry Version)
 Une application API moderne utilisant FastAPI, LangChain et OpenFDA pour démontrer une architecture RAG (Retrieval-Augmented Generation).
 
-L'application permet d'ingérer des données médicales externes, de les vectoriser et de répondre à des questions complexes en langage naturel.
+Ce projet utilise Poetry pour la gestion des dépendances et des environnements virtuels.
 
 🏗️ Architecture
 Backend : FastAPI (Python)
@@ -9,27 +9,42 @@ Orchestration IA : LangChain
 Base de données vectorielle : ChromaDB
 Modèle LLM : OpenAI GPT-3.5/4
 Source de données : OpenFDA API
-🚀 Installation
+Gestionnaire de paquets : Poetry
+
+🛠️ Prérequis
+Python 3.9 ou supérieur
+Poetry installé sur votre machine
+Une clé API OpenAI
+
+🚀 Installation (avec Poetry)
 Cloner le repository
 git clone https://github.com/votre-username/health_rag_api.gitcd health_rag_api
-Créer un environnement virtuel
-bash
 
-python -m venv venv
-source venv/bin/activate  # Sur Windows: venv\Scripts\activate
 Installer les dépendances
+Cette commande va créer un environnement virtuel isolé et installer toutes les librairies nécessaires.
 bash
 
-pip install -r requirements.txt
+poetry install
+Activer l'environnement virtuel (Optionnel)
+bash
+
+poetry shell
+(Si vous n'activez pas le shell, vous devrez préfixer vos commandes par poetry run comme indiqué ci-dessous).
 Configurer les variables d'environnement
-Renommez le fichier .env et ajoutez votre clé API OpenAI :
+Assurez-vous que le fichier .env existe à la racine et contient votre clé API :
 env
 
 OPENAI_API_KEY=sk-votre_cle_ici
 ▶️ Lancement du serveur
+Utilisez Poetry pour lancer l'application. Cela garantit que les bonnes versions de librairies sont utilisées.
+
 bash
 
-python main.py
+# Si vous n'avez pas fait 'poetry shell', utilisez :
+poetry run uvicorn main:app --reload
+
+# Si vous avez activé l'environnement avec 'poetry shell', simplement :
+uvicorn main:app --reload
 L'API sera accessible à l'adresse : http://127.0.0.1:8000
 
 La documentation interactive (Swagger UI) est disponible ici : http://127.0.0.1:8000/docs
@@ -55,8 +70,3 @@ json
 {
   "question": "Quels sont les effets secondaires de l'aspirine ?"
 }
-🛠️ Technologies utilisées
-FastAPI
-LangChain
-ChromaDB
-OpenAI API
