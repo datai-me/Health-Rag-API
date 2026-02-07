@@ -1,5 +1,12 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from datetime import datetime
+# Modèle pour la Base de Données (SQLAlchemy) - Importé dans database.py
+from sqlalchemy import Column, Integer, String
+from app.database import Base
+
+
+# --- MODÈLES RAG ---
 
 class IngestRequest(BaseModel):
     """
@@ -51,3 +58,35 @@ class AnswerResponse(BaseModel):
         default_factory=list,
         description="Liste des fragments de texte ayant servi de contexte à la réponse."
     )
+
+# --- MODÈLES AUTHENTIFICATION (DB & API) ---
+
+class User(Base):
+    """
+    Table des utilisateurs dans la base SQLite.
+    """
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+
+# Modèles pour l'API (Pydantic)
+class UserCreate(BaseModel):
+    """Données nécessaires pour créer un utilisateur."""
+    username: str = Field(..., example="johndoe")
+    password: str = Field(..., example="monmotdepasse123")
+
+class UserLogin(BaseModel):
+    """Données nécessaires pour se connecter."""
+    username: str = Field(..., example="johndoe")
+    password: str = Field(..., example="monmotdepasse123")
+
+class Token(BaseModel):
+    """Réponse lors d'une connexion réussie."""
+    access_token: str
+    token_type: str = "bearer"
+
+class TokenData(BaseModel):
+    """Structure interne du payload JWT."""
+    username: Optional[str] = None

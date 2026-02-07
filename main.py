@@ -2,6 +2,30 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 
+from contextlib import asynccontextmanager  # <--- NOUVEL IMPORT
+
+from app.database import engine, Base
+
+# --- Gestion du cycle de vie (Startup / Shutdown) ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Fonction de gestion du cycle de vie de l'application.
+    
+    Tout ce qui est AVANT le 'yield' est exécuté au DÉMARRAGE (Startup).
+    Tout ce qui est APRÈS le 'yield' est exécuté à l'ARRÊT (Shutdown).
+    """
+    # Startup : Création des tables de la base de données
+    print("Démarrage de l'application : Création des tables...")
+    Base.metadata.create_all(bind=engine)
+    print("Base de données prête.")
+    
+    yield  # L'application est en cours d'exécution ici
+    
+    # Shutdown : Fermeture des connexions, logs de fin, etc.
+    print("Arrêt de l'application.")
+
+
 # Initialisation de l'application avec métadonnées pour OpenAPI
 app = FastAPI(
     title="Health RAG API",
@@ -20,6 +44,7 @@ app = FastAPI(
         "name": "MIT License",
         "url": "https://opensource.org/licenses/MIT",
     },
+    lifespan=lifespan,  # <--- On relie ici notre fonction de cycle de vie
 )
 
 # Configuration du middleware CORS pour autoriser les appels cross-origin
@@ -42,7 +67,7 @@ def read_root():
     Returns:
         dict: Un message de bienvenue.
     """
-    return {"status": "online", "message": "API Health RAG opérationnelle"}
+    return {"status": "online", "message": "API Health RAG sécurisée opérationnelle"}
 
 if __name__ == "__main__":
     import uvicorn
