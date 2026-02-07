@@ -1,4 +1,5 @@
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_groq import ChatGroq
+from langchain_community.embeddings import JinaEmbeddings
 from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_classic.chains import create_retrieval_chain
@@ -10,16 +11,35 @@ from app.config import get_settings
 settings = get_settings()
 
 class RAGService:
-    """Service gérant le pipeline RAG (Vector DB + LLM)."""
+    """Service RAG utilisant Groq et des embeddings gratuits."""
     
     def __init__(self):
-        self.embeddings = OpenAIEmbeddings(openai_api_key=settings.openai_api_key)
-        self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, openai_api_key=settings.openai_api_key)
-        self.vector_store = Chroma(embedding_function=self.embeddings, collection_name="health_collection")
+        # 1. Initialisation des Embeddings (Jina - Gratuit)
+        # IMPORTANT : Cette ligne crée self.embeddings. Sans elle, Chroma ne peut pas fonctionner.
+        self.embeddings = JinaEmbeddings(
+            jina_api_key=settings.jina_api_key, # On lit la clé dans config.py
+            model_name="jina-embeddings-v2-base-en"
+        )
+        
+        # 2. Initialisation du LLM (Groq - Gratuit)
+        self.llm = ChatGroq(
+            temperature=0,
+            model="llama-3.3-70b-versatile", # Modèle Llama 3
+            api_key=settings.groq_api_key # On lit la clé dans config.py
+        )
+        
+        # 3. Initialisation de la Base Vectorielle (Chroma)
+        # Ici, on utilise self.embeddings défini juste au-dessus.
+        self.vector_store = Chroma(
+            embedding_function=self.embeddings, 
+            collection_name="health_collection"
+        )
+        
+        # Création du retriever
         self.retriever = self.vector_store.as_retriever(search_kwargs={"k": 3})
 
     def ingest_documents(self, texts: list) -> int:
-        """Découpe et vectorise les textes."""
+        """Découpe et indexe les textes."""
         docs = [Document(page_content=t) for t in texts]
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         splits = splitter.split_documents(docs)
